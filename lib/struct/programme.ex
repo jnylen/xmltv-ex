@@ -1,6 +1,4 @@
 defmodule XMLTV.Programme do
-  use Vex.Struct
-
   # According to XMLTV.dtd
   # Might not have all properties
   defstruct start: nil,
@@ -21,6 +19,8 @@ defmodule XMLTV.Programme do
             previously_shown: nil,
             url: nil,
             icon: nil
+
+  use Vex.Struct
 
   # Validators
   validates(:start, presence: true)
