@@ -115,21 +115,10 @@ defmodule XMLTV do
     end
   end
 
-  defp add_field(docs, :category, %{program_type: program_type, category: genres}) do
-    if is_nil(program_type) do
-      docs
-    else
-      docs
-      |> Enum.concat([
-        element(
-          :category,
-          %{"lang" => "en"},
-          program_type
-        )
-      ])
-    end
+  defp add_field(docs, :category, %{category: category}) do
+    docs
     |> Enum.concat(
-      Enum.map(genres, fn genre ->
+      Enum.map(category, fn genre ->
         element(
           :category,
           %{"lang" => "en"},
