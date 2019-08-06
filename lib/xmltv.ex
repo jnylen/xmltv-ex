@@ -13,7 +13,7 @@ defmodule XMLTV do
   Documentation for XMLTV.
   """
 
-  def export(programmes, config) do
+  def as_string(programmes, config) do
     []
     |> add_programme(programmes)
     |> into_tv(config)
