@@ -26,4 +26,5 @@ defmodule XMLTV.Programme do
   validates(:start, presence: true)
   validates(:stop, presence: true)
   validates(:channel, presence: true)
+  validates(:title, presence: true)
 end

@@ -6,6 +6,7 @@ end
 
 defmodule XMLTV do
   import XmlBuilder
+  alias XMLTV.Channel
   alias XMLTV.Programme
   alias XMLTV.Helper.Credits
 
@@ -13,13 +14,39 @@ defmodule XMLTV do
   Documentation for XMLTV.
   """
 
-  def as_string(programmes, config) do
+  def as_string(items, config \\ %{}) do
     []
-    |> add_programme(programmes)
+    |> add_channel(items, config)
+    |> add_programme(items)
     |> into_tv(config)
     |> document()
     |> generate(encoding: "utf-8")
   end
+
+  # Parse the channel
+  defp add_channel(doc, [], _), do: doc
+
+  defp add_channel(doc, [%Channel{} = channel | channels], config) do
+    if Vex.valid?(channel) do
+      doc
+      |> Enum.concat([
+        element(
+          :channel,
+          %{
+            id: channel.id
+          },
+          compile_channel(channel, config)
+        )
+      ])
+      |> add_channel(channels, config)
+    else
+      doc
+      |> add_channel(channels, config)
+    end
+  end
+
+  defp add_channel(doc, [_wrong_struct | channels], config),
+    do: add_channel(doc, channels, config)
 
   # Parse the programme
   defp add_programme(doc, []), do: doc
@@ -48,6 +75,14 @@ defmodule XMLTV do
   defp add_programme(doc, [_wrong_struct | programmes]), do: add_programme(doc, programmes)
 
   # Compile the fields inside of the programme
+  defp compile_channel(channel, config) do
+    []
+    |> add_field(:name, channel.name)
+    |> add_field(:baseurl, Map.get(config, :base_url))
+    |> add_field(:icon, channel.icon)
+  end
+
+  # Compile the fields inside of the programme
   defp compile_programme(programme) do
     []
     |> add_field(:title, programme.title)
@@ -60,6 +95,33 @@ defmodule XMLTV do
   end
 
   # Add fields
+  defp add_field(docs, :name, names) do
+    docs
+    |> Enum.concat(
+      Enum.map(names, fn name ->
+        element(
+          "display-name",
+          remove_nils_from_map(%{"lang" => name.language}),
+          name.value
+        )
+      end)
+    )
+  end
+
+  defp add_field(docs, :baseurl, baseurl) do
+    if lengther(baseurl) do
+      docs
+      |> Enum.concat([
+        element(
+          "base-url",
+          baseurl
+        )
+      ])
+    else
+      docs
+    end
+  end
+
   defp add_field(docs, :title, titles) do
     docs
     |> Enum.concat(
