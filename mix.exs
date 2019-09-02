@@ -2,7 +2,7 @@ defmodule Xmltv.MixProject do
   use Mix.Project
 
   @name :xmltv
-  @version "0.2.0"
+  @version "0.3.0"
   @deps [
     {:timex, "~> 3.4"},
     {:exprintf, "~> 0.2.1"},
