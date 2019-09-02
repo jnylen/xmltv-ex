@@ -21,10 +21,163 @@ defmodule XMLTV.Programme do
             icon: nil
 
   use Vex.Struct
+  import XmlBuilder
+  alias XMLTV.Helper.Credits
+  alias XMLTV.Helper.Utils
 
   # Validators
   validates(:start, presence: true)
   validates(:stop, presence: true)
   validates(:channel, presence: true)
   validates(:title, presence: true)
+
+  @doc """
+  Add a programme based on a struct to a XML document
+  """
+  def add(doc, [], _config), do: doc
+
+  def add(doc, [%XMLTV.Programme{} = programme | programmes], config) do
+    if Vex.valid?(programme) do
+      doc
+      |> Enum.concat([
+        element(
+          :programme,
+          %{
+            start: Utils.format_datetime(programme.start),
+            stop: Utils.format_datetime(programme.stop),
+            channel: programme.channel
+          },
+          compile_programme(programme)
+        )
+      ])
+      |> add(programmes, config)
+    else
+      doc
+      |> add(programmes, config)
+    end
+  end
+
+  def add(doc, [_wrong_struct | programmes], config), do: add(doc, programmes, config)
+
+  # Compile the fields inside of the programme
+  defp compile_programme(programme) do
+    []
+    |> add_field(:title, programme.title)
+    |> add_field(:subtitle, programme.subtitle)
+    |> add_field(:desc, programme.desc)
+    |> add_field(:credits, Credits.sort(programme.credits))
+    # |> add_field(:date, programme.production_year)
+    |> add_field(:category, programme)
+    |> add_field(:xmltvns, programme)
+  end
+
+  # Add fields
+
+  defp add_field(docs, :title, titles) do
+    docs
+    |> Enum.concat(
+      Enum.map(titles, fn title ->
+        element(
+          :title,
+          Utils.remove_nils_from_map(%{"lang" => title.language}),
+          title.value
+        )
+      end)
+    )
+  end
+
+  defp add_field(docs, :subtitle, subtitles) do
+    docs
+    |> Enum.concat(
+      Enum.map(subtitles, fn subtitle ->
+        element(
+          "sub-title",
+          Utils.remove_nils_from_map(%{"lang" => subtitle.language}),
+          subtitle.value
+        )
+      end)
+    )
+  end
+
+  defp add_field(docs, :desc, descriptions) do
+    docs
+    |> Enum.concat(
+      Enum.map(descriptions, fn desc ->
+        element(
+          :desc,
+          Utils.remove_nils_from_map(%{"lang" => desc.language}),
+          desc.value
+        )
+      end)
+    )
+  end
+
+  defp add_field(docs, :credits, credits) do
+    creds = credits |> Enum.map(&add_credit/1) |> Enum.reject(&is_nil/1)
+
+    if length(creds) > 0 do
+      docs
+      |> Enum.concat([
+        element(
+          :credits,
+          creds
+        )
+      ])
+    else
+      docs
+    end
+  end
+
+  defp add_field(docs, :category, %{category: category}) do
+    docs
+    |> Enum.concat(
+      Enum.map(category, fn genre ->
+        element(
+          :category,
+          %{"lang" => "en"},
+          genre
+        )
+      end)
+    )
+  end
+
+  defp add_field(docs, :xmltvns, %{season: season, episode: episode}) do
+    import ExPrintf
+
+    if Utils.lengther(season) or Utils.lengther(episode) do
+      docs
+      |> Enum.concat([
+        element(
+          "episode-num",
+          %{"system" => "xmltv_ns"},
+          sprintf("%s.%s.", [
+            if(season |> Utils.lengther(), do: (season - 1) |> to_string, else: ""),
+            if(episode |> Utils.lengther(), do: (episode - 1) |> to_string, else: "")
+          ])
+        )
+      ])
+    else
+      docs
+    end
+  end
+
+  defp add_field(docs, _, _), do: docs
+
+  # Parse credits into an element
+  defp add_credit(%{type: "director"} = credit) do
+    element(
+      :director,
+      credit.person
+    )
+  end
+
+  defp add_credit(%{type: "actor"} = credit) do
+    element(
+      :actor,
+      Utils.remove_nils_from_map(%{"role" => credit.role}),
+      credit.person
+    )
+  end
+
+  defp add_credit(_), do: nil
 end
