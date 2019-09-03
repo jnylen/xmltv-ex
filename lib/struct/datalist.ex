@@ -45,7 +45,7 @@ defmodule XMLTV.Datalist do
   defp compile_channel(datalist, config) do
     []
     |> add_field(:name, datalist.channel_names)
-    |> add_field(:baseurl, Map.get(config, :base_url))
+    |> add_field(:baseurl, datalist.base_url)
     |> add_field(:datafor, datalist.data_for)
   end
 
@@ -64,17 +64,15 @@ defmodule XMLTV.Datalist do
   end
 
   defp add_field(docs, :baseurl, baseurl) do
-    if Utils.lengther(baseurl) do
-      docs
-      |> Enum.concat([
+    docs
+    |> Enum.concat(
+      Enum.map(baseurl, fn url ->
         element(
           "base-url",
-          baseurl
+          url
         )
-      ])
-    else
-      docs
-    end
+      end)
+    )
   end
 
   defp add_field(docs, :datafor, datafors) do
