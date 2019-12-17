@@ -42,7 +42,7 @@ defmodule XMLTV.Datalist do
     do: add(doc, datalists, config)
 
   # Compile the fields inside of the programme
-  defp compile_channel(datalist, config) do
+  defp compile_channel(datalist, _config) do
     []
     |> add_field(:name, datalist.channel_names)
     |> add_field(:baseurl, datalist.base_url)

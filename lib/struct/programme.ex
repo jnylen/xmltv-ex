@@ -17,6 +17,7 @@ defmodule XMLTV.Programme do
             video: %{},
             audio: %{},
             previously_shown: nil,
+            new: nil,
             url: nil,
             icon: nil
 
@@ -66,9 +67,11 @@ defmodule XMLTV.Programme do
     |> add_field(:subtitle, programme.subtitle)
     |> add_field(:desc, programme.desc)
     |> add_field(:credits, Credits.sort(programme.credits))
-    # |> add_field(:date, programme.production_year)
+    |> add_field(:date, programme.date)
     |> add_field(:category, programme)
     |> add_field(:xmltvns, programme)
+    |> add_field(:previously_shown, programme)
+    |> add_field(:new, programme)
   end
 
   # Add fields
@@ -141,6 +144,17 @@ defmodule XMLTV.Programme do
     )
   end
 
+  defp add_field(docs, :category, %{date: %Date{} = date}) do
+    docs
+    |> Enum.concat(
+      element(
+        :category,
+        date
+        |> Date.to_iso8601()
+      )
+    )
+  end
+
   defp add_field(docs, :xmltvns, %{season: season, episode: episode}) do
     import ExPrintf
 
@@ -159,6 +173,26 @@ defmodule XMLTV.Programme do
     else
       docs
     end
+  end
+
+  defp add_field(docs, :previously_shown, %{previously_shown: true}) do
+    docs
+    |> Enum.concat([element(:previously_shown)])
+  end
+
+  defp add_field(docs, :previously_shown, %{previously_shown: val}) when is_bitstring(val) do
+    docs
+    |> Enum.concat([element(:previously_shown, val)])
+  end
+
+  defp add_field(docs, :new, %{new: true}) do
+    docs
+    |> Enum.concat([element(:new)])
+  end
+
+  defp add_field(docs, :new, %{new: val}) when is_bitstring(val) do
+    docs
+    |> Enum.concat([element(:new, val)])
   end
 
   defp add_field(docs, _, _), do: docs
