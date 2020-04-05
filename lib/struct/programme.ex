@@ -160,13 +160,13 @@ defmodule XMLTV.Programme do
 
   defp add_field(docs, :date, %{date: %Date{} = date}) do
     docs
-    |> Enum.concat(
+    |> Enum.concat([
       element(
         :date,
         date
         |> Date.to_iso8601()
       )
-    )
+    ])
   end
 
   defp add_field(docs, :xmltvns, %{season: season, episode: episode}) do
