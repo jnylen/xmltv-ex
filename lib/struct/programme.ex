@@ -13,7 +13,7 @@ defmodule XMLTV.Programme do
             season: nil,
             episode: nil,
             of_episodes: nil,
-            country: nil,
+            country: [],
             video: %{},
             audio: %{},
             previously_shown: nil,
@@ -201,7 +201,7 @@ defmodule XMLTV.Programme do
 
   defp add_field(docs, :icon, %{icon: val}) when is_bitstring(val) do
     docs
-    |> Enum.concat([element(:icon, val)])
+    |> Enum.concat([element(:icon, %{"src" => val})])
   end
 
   defp add_field(docs, :new, %{new: true}) do
