@@ -39,8 +39,7 @@ defmodule XMLTV.Programme do
 
   def add(doc, [%XMLTV.Programme{} = programme | programmes], config) do
     if Vex.valid?(programme) do
-      doc
-      |> Enum.concat([
+      [
         element(
           :programme,
           %{
@@ -50,7 +49,8 @@ defmodule XMLTV.Programme do
           },
           compile_programme(programme)
         )
-      ])
+        | doc
+      ]
       |> add(programmes, config)
     else
       doc
@@ -79,8 +79,7 @@ defmodule XMLTV.Programme do
   # Add fields
 
   defp add_field(docs, :title, titles) do
-    docs
-    |> Enum.concat(
+    docs ++
       Enum.map(titles, fn title ->
         element(
           :title,
@@ -88,12 +87,10 @@ defmodule XMLTV.Programme do
           title.value
         )
       end)
-    )
   end
 
   defp add_field(docs, :subtitle, subtitles) do
-    docs
-    |> Enum.concat(
+    docs ++
       Enum.map(subtitles, fn subtitle ->
         element(
           "sub-title",
@@ -101,12 +98,10 @@ defmodule XMLTV.Programme do
           subtitle.value
         )
       end)
-    )
   end
 
   defp add_field(docs, :desc, descriptions) do
-    docs
-    |> Enum.concat(
+    docs ++
       Enum.map(descriptions, fn desc ->
         element(
           :desc,
@@ -114,28 +109,26 @@ defmodule XMLTV.Programme do
           desc.value
         )
       end)
-    )
   end
 
   defp add_field(docs, :credits, credits) do
     creds = credits |> Enum.map(&add_credit/1) |> Enum.reject(&is_nil/1)
 
     if length(creds) > 0 do
-      docs
-      |> Enum.concat([
+      [
         element(
           :credits,
           creds
         )
-      ])
+        | docs
+      ]
     else
       docs
     end
   end
 
   defp add_field(docs, :category, %{category: category}) do
-    docs
-    |> Enum.concat(
+    docs ++
       Enum.map(category, fn val ->
         element(
           :category,
@@ -143,38 +136,34 @@ defmodule XMLTV.Programme do
           val
         )
       end)
-    )
   end
 
   defp add_field(docs, :country, %{country: country}) do
-    docs
-    |> Enum.concat(
+    docs ++
       Enum.map(country, fn val ->
         element(
           :country,
           val
         )
       end)
-    )
   end
 
   defp add_field(docs, :date, %{date: %Date{} = date}) do
-    docs
-    |> Enum.concat([
+    [
       element(
         :date,
         date
         |> Date.to_iso8601()
       )
-    ])
+      | docs
+    ]
   end
 
   defp add_field(docs, :xmltvns, %{season: season, episode: episode}) do
     import ExPrintf
 
     if Utils.lengther(season) or Utils.lengther(episode) do
-      docs
-      |> Enum.concat([
+      [
         element(
           "episode-num",
           %{"system" => "xmltv_ns"},
@@ -183,35 +172,31 @@ defmodule XMLTV.Programme do
             if(episode |> Utils.lengther(), do: (episode - 1) |> to_string, else: "")
           ])
         )
-      ])
+        | docs
+      ]
     else
       docs
     end
   end
 
   defp add_field(docs, :previously_shown, %{previously_shown: true}) do
-    docs
-    |> Enum.concat([element(:previously_shown)])
+    [element(:previously_shown) | docs]
   end
 
   defp add_field(docs, :previously_shown, %{previously_shown: val}) when is_bitstring(val) do
-    docs
-    |> Enum.concat([element(:previously_shown, val)])
+    [element(:previously_shown, val) | docs]
   end
 
   defp add_field(docs, :icon, %{icon: val}) when is_bitstring(val) do
-    docs
-    |> Enum.concat([element(:icon, %{"src" => val})])
+    [element(:icon, %{"src" => val}) | docs]
   end
 
   defp add_field(docs, :new, %{new: true}) do
-    docs
-    |> Enum.concat([element(:new)])
+    [element(:new) | docs]
   end
 
   defp add_field(docs, :new, %{new: val}) when is_bitstring(val) do
-    docs
-    |> Enum.concat([element(:new, val)])
+    [element(:new, val) | docs]
   end
 
   defp add_field(docs, _, _), do: docs

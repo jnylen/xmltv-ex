@@ -21,8 +21,7 @@ defmodule XMLTV.Channel do
 
   def add(doc, [%XMLTV.Channel{} = channel | channels], config) do
     if Vex.valid?(channel) do
-      doc
-      |> Enum.concat([
+      [
         element(
           :channel,
           %{
@@ -30,7 +29,8 @@ defmodule XMLTV.Channel do
           },
           compile_channel(channel, config)
         )
-      ])
+        | doc
+      ]
       |> add(channels, config)
     else
       doc
@@ -51,8 +51,7 @@ defmodule XMLTV.Channel do
 
   # Add fields
   defp add_field(docs, :name, names) do
-    docs
-    |> Enum.concat(
+    docs ++
       Enum.map(names, fn name ->
         element(
           "display-name",
@@ -60,18 +59,17 @@ defmodule XMLTV.Channel do
           name.value
         )
       end)
-    )
   end
 
   defp add_field(docs, :baseurl, baseurl) do
     if Utils.lengther(baseurl) do
-      docs
-      |> Enum.concat([
+      [
         element(
           "base-url",
           baseurl
         )
-      ])
+        | docs
+      ]
     else
       docs
     end
