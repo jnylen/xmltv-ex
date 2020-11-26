@@ -21,8 +21,7 @@ defmodule XMLTV.Programme do
             url: nil,
             icon: nil
 
-  use Vex.Struct
-  import XmlBuilder
+  import XmlStream
   alias XMLTV.Helper.Credits
   alias XMLTV.Helper.Utils
 
@@ -35,14 +34,13 @@ defmodule XMLTV.Programme do
   @doc """
   Add a programme based on a struct to a XML document
   """
-  def add(doc, [], _config), do: doc
 
-  def add(doc, [%XMLTV.Programme{} = programme | programmes], config) do
-    if Vex.valid?(programme) do
-      doc
-      |> Enum.concat([
+  def add(initial_stream, programme_stream, config) do
+    initial_stream
+    |> Stream.concat(
+      Stream.map(programme_stream, fn programme ->
         element(
-          :programme,
+          "programme",
           %{
             start: Utils.format_datetime(programme.start),
             stop: Utils.format_datetime(programme.stop),
@@ -50,15 +48,9 @@ defmodule XMLTV.Programme do
           },
           compile_programme(programme)
         )
-      ])
-      |> add(programmes, config)
-    else
-      doc
-      |> add(programmes, config)
-    end
+      end)
+    )
   end
-
-  def add(doc, [_wrong_struct | programmes], config), do: add(doc, programmes, config)
 
   # Compile the fields inside of the programme
   defp compile_programme(programme) do

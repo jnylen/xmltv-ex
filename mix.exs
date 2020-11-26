@@ -6,8 +6,7 @@ defmodule Xmltv.MixProject do
   @deps [
     {:timex, "~> 3.4"},
     {:exprintf, "~> 0.2.1"},
-    {:xml_builder, "~> 2.1.1"},
-    {:vex, "~> 0.8.0"}
+    {:xml_stream, "~> 0.2.0"}
   ]
 
   def project do
