@@ -6,8 +6,7 @@ defmodule XMLTV.Channel do
             url: nil,
             icon: nil
 
-  use Vex.Struct
-  import XmlBuilder
+  import XmlStream
   alias XMLTV.Helper.Utils
 
   # Validators
@@ -17,29 +16,15 @@ defmodule XMLTV.Channel do
   @doc """
   Add a channel XML element based on struct to a document
   """
-  def add(doc, [], _), do: doc
 
-  def add(doc, [%XMLTV.Channel{} = channel | channels], config) do
-    if Vex.valid?(channel) do
-      doc
-      |> Enum.concat([
-        element(
-          :channel,
-          %{
-            id: channel.id
-          },
-          compile_channel(channel, config)
-        )
-      ])
-      |> add(channels, config)
-    else
-      doc
-      |> add(channels, config)
-    end
+  def add(initial_stream, channel_stream, config) do
+    initial_stream
+    |> Stream.concat(
+      Stream.map(channel_stream, fn channel ->
+        element("channel", %{id: channel.id}, compile_channel(channel, config))
+      end)
+    )
   end
-
-  def add(doc, [_wrong_struct | channels], config),
-    do: add(doc, channels, config)
 
   # Compile the fields inside of the programme
   defp compile_channel(channel, config) do

@@ -6,8 +6,7 @@ defmodule XMLTV.Datalist do
             base_url: [],
             data_for: []
 
-  use Vex.Struct
-  import XmlBuilder
+  import XmlStream
   alias XMLTV.Helper.Utils
 
   # Validators
@@ -17,29 +16,15 @@ defmodule XMLTV.Datalist do
   @doc """
   Add a channel XML element based on struct to a document
   """
-  def add(doc, [], _), do: doc
 
-  def add(doc, [%XMLTV.Datalist{} = datalist | datalists], config) do
-    if Vex.valid?(datalist) do
-      doc
-      |> Enum.concat([
-        element(
-          :channel,
-          %{
-            id: datalist.channel_id
-          },
-          compile_channel(datalist, config)
-        )
-      ])
-      |> add(datalists, config)
-    else
-      doc
-      |> add(datalists, config)
-    end
+  def add(initial_stream, channel_stream, config) do
+    initial_stream
+    |> Stream.concat(
+      Stream.map(channel_stream, fn channel ->
+        element("channel", %{id: channel.id}, compile_channel(channel, config))
+      end)
+    )
   end
-
-  def add(doc, [_wrong_struct | datalists], config),
-    do: add(doc, datalists, config)
 
   # Compile the fields inside of the programme
   defp compile_channel(datalist, _config) do
