@@ -7,7 +7,7 @@ defmodule Xmltv.MixProject do
     {:timex, "~> 3.4"},
     {:exprintf, "~> 0.2.1"},
     {:xml_builder, "~> 2.2.0"},
-    {:vex, "~> 0.8.0"}
+    {:vex, "~> 0.9.0"}
   ]
 
   def project do
