@@ -1,9 +1,3 @@
-defimpl Vex.Blank, for: DateTime do
-  def blank?(nil), do: true
-  def blank?(""), do: true
-  def blank?(_), do: false
-end
-
 defmodule XMLTV do
   import XmlBuilder
   alias XMLTV.Channel
